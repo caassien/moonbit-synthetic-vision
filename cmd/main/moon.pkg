@@ -1,6 +1,6 @@
-// import {
-//   "caassien/moonbit-synthetic-vision" @lib,
-// }
+import {
+  "caassien/moonbit-synthetic-vision" @vision,
+}
 
 options(
   "is-main": true,

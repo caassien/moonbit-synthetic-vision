@@ -1,7 +1,9 @@
-///|
-/// Entry point for the CLI or runnable program in this template.
-/// Keep main focused; move logic into the library package.
-/// Run with `moon run cmd/main` from the project root.
 fn main {
-  println("Hello")
+  let size = @vision.Size::new(width=40, height=20)
+  let plans = @vision.default_suite(size=size)
+  let manifest = @vision.suite_manifest(plans, prefix="synthetic")
+  println(manifest.to_json())
+  println("# preview: detection_shapes")
+  let scene = @vision.render_plan(plans[3])
+  println(scene.image.to_ascii_art())
 }
