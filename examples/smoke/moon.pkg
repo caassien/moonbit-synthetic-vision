@@ -1,0 +1,5 @@
+import {
+  "caassien/moonbit-synthetic-vision" @vision,
+}
+
+pkgtype(kind: "executable")
