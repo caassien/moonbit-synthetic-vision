@@ -19,7 +19,12 @@ pub struct ScenePlan {
 } derive(Debug, Eq)
 
 ///|
-pub fn ScenePlan::new(name~ : String, kind~ : AssetKind, size~ : Size, seed? : UInt = 1) -> ScenePlan {
+pub fn ScenePlan::new(
+  name~ : String,
+  kind~ : AssetKind,
+  size~ : Size,
+  seed? : UInt = 1,
+) -> ScenePlan {
   { name, kind, size, seed }
 }
 
@@ -44,7 +49,9 @@ pub fn SceneOutput::new(
 }
 
 ///|
-pub fn default_suite(size? : Size = Size::new(width=96, height=72)) -> Array[ScenePlan] {
+pub fn default_suite(
+  size? : Size = Size::new(width=96, height=72),
+) -> Array[ScenePlan] {
   [
     ScenePlan::new(name="checkerboard_8", kind=Checkerboard, size~, seed=1),
     ScenePlan::new(name="calibration_7x5", kind=Calibration, size~, seed=2),
@@ -60,29 +67,51 @@ pub fn default_suite(size? : Size = Size::new(width=96, height=72)) -> Array[Sce
 ///|
 pub fn render_plan(plan : ScenePlan) -> SceneOutput {
   match plan.kind {
-    Checkerboard => SceneOutput::new(
-      plan~,
-      image=checkerboard(plan.size, 8, dark=Gray::new(20), light=Gray::new(235)),
-    )
-    Calibration => SceneOutput::new(
-      plan~,
-      image=calibration_board(cols=7, rows=5, cell=max_i(4, min_i(plan.size.width / 9, plan.size.height / 7))),
-    )
-    DotGrid => SceneOutput::new(
-      plan~,
-      image=dot_grid(plan.size, max_i(6, plan.size.width / 12), max_i(2, plan.size.width / 96)),
-    )
+    Checkerboard =>
+      SceneOutput::new(
+        plan~,
+        image=checkerboard(
+          plan.size,
+          8,
+          dark=Gray::new(20),
+          light=Gray::new(235),
+        ),
+      )
+    Calibration =>
+      SceneOutput::new(
+        plan~,
+        image=calibration_board(
+          cols=7,
+          rows=5,
+          cell=max_i(4, min_i(plan.size.width / 9, plan.size.height / 7)),
+        ),
+      )
+    DotGrid =>
+      SceneOutput::new(
+        plan~,
+        image=dot_grid(
+          plan.size,
+          max_i(6, plan.size.width / 12),
+          max_i(2, plan.size.width / 96),
+        ),
+      )
     Detection => render_detection_scene(plan)
     Segmentation => render_segmentation_scene(plan)
-    Noise => SceneOutput::new(
-      plan~,
-      image=add_uniform_noise(target_scene(plan.size, seed=plan.seed), seed=plan.seed + 31, magnitude=28),
-    )
-    MotionBlur => SceneOutput::new(
-      plan~,
-      image=motion_blur_x(target_scene(plan.size, seed=plan.seed), 4),
-      flow=constant_flow(plan.size, 12, dx=4, dy=0),
-    )
+    Noise =>
+      SceneOutput::new(
+        plan~,
+        image=add_uniform_noise(
+          target_scene(plan.size, seed=plan.seed),
+          seed=plan.seed + 31,
+          magnitude=28,
+        ),
+      )
+    MotionBlur =>
+      SceneOutput::new(
+        plan~,
+        image=motion_blur_x(target_scene(plan.size, seed=plan.seed), 4),
+        flow=constant_flow(plan.size, 12, dx=4, dy=0),
+      )
     Occlusion => {
       let base = target_scene(plan.size, seed=plan.seed)
       let occ = Rect::new(
@@ -91,11 +120,13 @@ pub fn render_plan(plan : ScenePlan) -> SceneOutput {
         width=plan.size.width / 3,
         height=plan.size.height / 4,
       )
-      SceneOutput::new(
-        plan~,
-        image=occlude(base, occ, gray=Gray::new(16)),
-        boxes=[Box2D::new(label=Label::new(id=1, name="occluder"), rect=occ, occluded=false)],
-      )
+      SceneOutput::new(plan~, image=occlude(base, occ, gray=Gray::new(16)), boxes=[
+        Box2D::new(
+          label=Label::new(id=1, name="occluder"),
+          rect=occ,
+          occluded=false,
+        ),
+      ])
     }
   }
 }
@@ -149,19 +180,17 @@ pub fn render_segmentation_scene(plan : ScenePlan) -> SceneOutput {
   img.fill_rect(right, Gray::new(150))
   mask.fill_rect(left, 1)
   mask.fill_rect(right, 2)
-  SceneOutput::new(
-    plan~,
-    image=img,
-    mask~,
-    boxes=[
-      Box2D::new(label=Label::new(id=1, name="dark_block"), rect=left),
-      Box2D::new(label=Label::new(id=2, name="mid_block"), rect=right),
-    ],
-  )
+  SceneOutput::new(plan~, image=img, mask~, boxes=[
+    Box2D::new(label=Label::new(id=1, name="dark_block"), rect=left),
+    Box2D::new(label=Label::new(id=2, name="mid_block"), rect=right),
+  ])
 }
 
 ///|
-pub fn suite_manifest(plans : Array[ScenePlan], prefix? : String = "out") -> DatasetManifest {
+pub fn suite_manifest(
+  plans : Array[ScenePlan],
+  prefix? : String = "out",
+) -> DatasetManifest {
   let manifest = DatasetManifest::new(name="moonbit-synthetic-vision")
   for plan in plans {
     manifest.add(

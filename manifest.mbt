@@ -26,7 +26,10 @@ pub struct DatasetManifest {
 } derive(Debug, Eq)
 
 ///|
-pub fn DatasetManifest::new(name~ : String, version? : String = "0.1.0") -> DatasetManifest {
+pub fn DatasetManifest::new(
+  name~ : String,
+  version? : String = "0.1.0",
+) -> DatasetManifest {
   { name, version, assets: [] }
 }
 

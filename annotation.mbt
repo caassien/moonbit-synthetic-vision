@@ -17,7 +17,11 @@ pub struct Box2D {
 } derive(Debug, Eq)
 
 ///|
-pub fn Box2D::new(label~ : Label, rect~ : Rect, occluded? : Bool = false) -> Box2D {
+pub fn Box2D::new(
+  label~ : Label,
+  rect~ : Rect,
+  occluded? : Bool = false,
+) -> Box2D {
   { label, rect, occluded }
 }
 
@@ -45,7 +49,11 @@ pub struct Keypoint {
 } derive(Debug, Eq)
 
 ///|
-pub fn Keypoint::new(label~ : String, point~ : Point, visible? : Bool = true) -> Keypoint {
+pub fn Keypoint::new(
+  label~ : String,
+  point~ : Point,
+  visible? : Bool = true,
+) -> Keypoint {
   { label, point, visible }
 }
 
@@ -135,7 +143,12 @@ pub fn FlowVector::new(x~ : Int, y~ : Int, dx~ : Int, dy~ : Int) -> FlowVector {
 }
 
 ///|
-pub fn constant_flow(size : Size, step : Int, dx~ : Int, dy~ : Int) -> Array[FlowVector] {
+pub fn constant_flow(
+  size : Size,
+  step : Int,
+  dx~ : Int,
+  dy~ : Int,
+) -> Array[FlowVector] {
   let vectors : Array[FlowVector] = []
   let stride = max_i(1, step)
   for y in 0..<size.height {

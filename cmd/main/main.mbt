@@ -1,6 +1,7 @@
+///|
 fn main {
   let size = @vision.Size::new(width=40, height=20)
-  let plans = @vision.default_suite(size=size)
+  let plans = @vision.default_suite(size~)
   let manifest = @vision.suite_manifest(plans, prefix="synthetic")
   println(manifest.to_json())
   println("# preview: detection_shapes")

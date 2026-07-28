@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.mbt text eol=lf
+*.mbt.md text eol=lf
+*.mbti text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

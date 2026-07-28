@@ -28,7 +28,10 @@ test "pgm export contains stable header and pixels" {
 ///|
 test "rgb conversion exports ppm triples" {
   let image = GrayImage::new(width=1, height=1, fill=Gray::new(42))
-  inspect(RgbImage::from_gray(image).to_ppm(), content="P3\n1 1\n255\n42 42 42\n")
+  inspect(
+    RgbImage::from_gray(image).to_ppm(),
+    content="P3\n1 1\n255\n42 42 42\n",
+  )
 }
 
 ///|
@@ -61,7 +64,10 @@ test "mask fills clipped rectangles" {
 test "yolo export is normalized to thousandths" {
   let label = Label::new(id=2, name="box")
   let box = Box2D::new(label~, rect=Rect::new(x=10, y=20, width=30, height=40))
-  inspect(box.to_yolo(Size::new(width=100, height=200)), content="2 0.250 0.200 0.300 0.200")
+  inspect(
+    box.to_yolo(Size::new(width=100, height=200)),
+    content="2 0.250 0.200 0.300 0.200",
+  )
 }
 
 ///|
@@ -82,10 +88,7 @@ test "manifest escapes json strings" {
       tags=["a", "b"],
     ),
   )
-  inspect(
-    manifest.to_json().contains("demo \\\"set\\\""),
-    content="true",
-  )
+  inspect(manifest.to_json().contains("demo \\\"set\\\""), content="true")
 }
 
 ///|

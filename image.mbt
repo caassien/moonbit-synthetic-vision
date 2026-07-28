@@ -6,14 +6,21 @@ pub struct GrayImage {
 } derive(Debug, Eq)
 
 ///|
-pub fn GrayImage::new(width~ : Int, height~ : Int, fill? : Gray = Gray::black()) -> GrayImage {
+pub fn GrayImage::new(
+  width~ : Int,
+  height~ : Int,
+  fill? : Gray = Gray::black(),
+) -> GrayImage {
   let count = max_i(0, width * height)
   let pixels = Array::make(count, fill.value)
   { width, height, pixels }
 }
 
 ///|
-pub fn GrayImage::from_size(size : Size, fill? : Gray = Gray::black()) -> GrayImage {
+pub fn GrayImage::from_size(
+  size : Size,
+  fill? : Gray = Gray::black(),
+) -> GrayImage {
   GrayImage::new(width=size.width, height=size.height, fill~)
 }
 
@@ -91,13 +98,7 @@ pub fn GrayImage::invert(self : GrayImage) -> GrayImage {
 
 ///|
 pub fn GrayImage::threshold(self : GrayImage, cutoff : Int) -> GrayImage {
-  self.map(fn(v) {
-    if v >= cutoff {
-      255
-    } else {
-      0
-    }
-  })
+  self.map(fn(v) { if v >= cutoff { 255 } else { 0 } })
 }
 
 ///|
@@ -119,7 +120,11 @@ pub struct RgbImage {
 } derive(Debug, Eq)
 
 ///|
-pub fn RgbImage::new(width~ : Int, height~ : Int, fill? : Rgb = Rgb::new(r=0, g=0, b=0)) -> RgbImage {
+pub fn RgbImage::new(
+  width~ : Int,
+  height~ : Int,
+  fill? : Rgb = Rgb::new(r=0, g=0, b=0),
+) -> RgbImage {
   let count = max_i(0, width * height)
   let pixels = Array::make(count, fill)
   { width, height, pixels }

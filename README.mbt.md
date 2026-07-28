@@ -47,6 +47,7 @@ The CLI prints a JSON manifest and an ASCII preview of one generated scene.
 ## Minimal API Example
 
 ```mbt check
+///|
 test "build a checkerboard fixture" {
   let image = checkerboard(Size::new(width=8, height=8), 2)
   inspect(image.width, content="8")
@@ -56,6 +57,7 @@ test "build a checkerboard fixture" {
 ```
 
 ```mbt check
+///|
 test "create a detection suite manifest" {
   let plans = default_suite(size=Size::new(width=64, height=48))
   let manifest = suite_manifest(plans, prefix="fixtures")
@@ -84,12 +86,15 @@ The intended CI gate is:
 moon fmt --check
 moon check --target wasm-gc --deny-warn
 moon test --target wasm-gc
-moon info --target wasm-gc --deny-warn
+moon info --target wasm-gc
+git diff --exit-code
 ```
 
 The local toolchain used during development is `moon 0.1.20260713`. It is newer
 than the competition note that recommended MoonBit 0.10.3, so the repository is
-kept aligned with the latest installed formatter and warning behavior.
+kept aligned with the latest installed formatter and warning behavior. In this
+toolchain, `moon info` does not accept `--deny-warn`; warning denial is enforced
+by `moon check --deny-warn` before interface generation.
 
 ## OSC2026 Notes
 
