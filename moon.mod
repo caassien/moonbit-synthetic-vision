@@ -15,7 +15,7 @@ version = "0.1.0"
 
 readme = "README.mbt.md"
 
-repository = ""
+repository = "https://github.com/caassien/moonbit-synthetic-vision"
 
 license = "Apache-2.0"
 
