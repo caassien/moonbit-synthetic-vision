@@ -1,0 +1,35 @@
+name: test
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  moonbit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MoonBit
+        uses: hustcer/setup-moonbit@v1
+
+      - name: Show toolchain
+        run: moon version
+
+      - name: Check formatting
+        run: moon fmt --check
+
+      - name: Check warnings
+        run: moon check --target wasm-gc --deny-warn
+
+      - name: Run tests
+        run: moon test --target wasm-gc
+
+      - name: Generate public interface
+        run: moon info --target wasm-gc
+
+      - name: Verify generated interface is committed
+        run: git diff --exit-code
