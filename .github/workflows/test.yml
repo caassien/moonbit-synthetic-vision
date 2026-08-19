@@ -1,19 +1,27 @@
-name: test
+name: MoonBit quality
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  moonbit:
+  check:
+    name: Check (${{ matrix.target }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [wasm-gc, native]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup MoonBit
+      - name: Setup latest stable MoonBit
         uses: hustcer/setup-moonbit@v1
 
       - name: Show toolchain
@@ -23,13 +31,34 @@ jobs:
         run: moon fmt --check
 
       - name: Check warnings
-        run: moon check --target wasm-gc --deny-warn
+        run: moon check --target ${{ matrix.target }} --deny-warn
 
-      - name: Run tests
-        run: moon test --target wasm-gc
+      - name: Run tests with coverage
+        run: moon test --target ${{ matrix.target }} --deny-warn --enable-coverage
 
-      - name: Generate public interface
+      - name: Coverage summary
+        run: |
+          moon coverage report -f summary
+          moon coverage analyze
+
+      - name: Generate public interfaces
+        if: matrix.target == 'wasm-gc'
         run: moon info --target wasm-gc
 
-      - name: Verify generated interface is committed
+      - name: Verify generated files
+        if: matrix.target == 'wasm-gc'
         run: git diff --exit-code
+
+  cli:
+    name: CLI smoke test
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup latest stable MoonBit
+        uses: hustcer/setup-moonbit@v1
+      - name: Run preview
+        run: moon run --target wasm-gc cmd/main
+      - name: Run benchmark
+        run: moon run --target native cmd/bench

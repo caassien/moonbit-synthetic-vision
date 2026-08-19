@@ -1,52 +1,53 @@
 # moonbit-synthetic-vision
 
-Synthetic vision fixtures for MoonBit projects.
+Deterministic synthetic vision fixtures for MoonBit.
 
-`moonbit-synthetic-vision` generates small, deterministic visual assets for
-calibration, detection, segmentation, optical-flow smoke tests and image
-pipeline benchmarks. The library is intentionally lightweight: it writes plain
-PGM/PPM text images and structured annotations that are easy to diff in tests,
-store in repositories, or convert later with external tools.
+The library generates small, reviewable image assets and ground-truth
+annotations for computer-vision algorithms, image pipelines, calibration
+examples, tutorials, and continuous-integration regression tests. It is
+deliberately focused on reproducible fixtures rather than a general-purpose
+image-processing framework.
 
-## Why this project
+## Core capabilities
 
-MoonBit's ecosystem is still early in computer-vision tooling. Before choosing
-this topic, I checked mooncakes.io with keywords such as `vision`, `image`,
-`synthetic`, `ppm`, `calibration`, and `dataset`. The visible results did not
-show a mature package that focuses on reproducible synthetic vision test data.
+- Gray and RGB image buffers with safe access, cropping, padding, tiling,
+  resizing, rotation, channel conversion, and PGM/PPM export.
+- Procedural calibration boards, checkerboards, dot grids, gradients, target
+  scenes, and deterministic noise/blur/occlusion effects.
+- Drawing primitives, thresholding, morphology, Sobel edge maps, contrast
+  transforms, and integer translation.
+- Bounding boxes, labels, keypoints, masks, optical-flow vectors, YOLO text,
+  and scene-level annotation summaries.
+- Dataset manifests, tag filtering, deterministic train/validation/holdout
+  splitting, and a runnable suite renderer.
+- Image statistics and comparison metrics including MAE, MSE, PSNR, histogram,
+  dynamic range, and constant-image checks.
 
-This project therefore avoids competing with a broad image-processing library.
-Its scope is narrower than OpenCV-style processing, but broad enough to grow:
-more scene recipes, exporters, distortion models, annotation formats, and
-benchmark presets can be added without changing the core image model.
+## Quick start
 
-## Current Features
-
-- Gray and RGB image buffers with safe bounds checks.
-- PGM/PPM export and compact ASCII previews.
-- Checkerboards, calibration boards, dot grids and gradients.
-- Rectangle, circle and line drawing primitives.
-- Seeded synthetic target scenes.
-- Uniform noise, salt-and-pepper noise, occlusion, box blur and horizontal
-  motion blur.
-- Bounding boxes, keypoints, segmentation masks and regular optical-flow
-  vectors.
-- Dataset manifests for generated assets.
-- A runnable CLI preview.
-
-## Quick Start
-
-```bash
-moon check --target wasm-gc
+~~~bash
+moon check --target wasm-gc --deny-warn
 moon test --target wasm-gc
 moon run --target wasm-gc cmd/main
-```
+~~~
 
-The CLI prints a JSON manifest and an ASCII preview of one generated scene.
+The preview command prints a JSON manifest and an ASCII rendering. The
+benchmark command exercises the complete default suite:
 
-## Minimal API Example
+~~~bash
+moon run --target native cmd/bench
+~~~
 
-```mbt check
+## CLI
+
+cmd/main is a human-readable preview for smoke testing. cmd/bench renders the
+eight default scene recipes at 160×120 and prints deterministic workload
+counters and a pixel checksum. These commands do not require external image
+libraries or network access.
+
+## API example
+
+~~~mbt nocheck
 ///|
 test "build a checkerboard fixture" {
   let image = checkerboard(Size::new(width=8, height=8), 2)
@@ -54,66 +55,64 @@ test "build a checkerboard fixture" {
   inspect(image.get(0, 0).value, content="0")
   inspect(image.get(2, 0).value, content="255")
 }
-```
+~~~
 
-```mbt check
-///|
-test "create a detection suite manifest" {
-  let plans = default_suite(size=Size::new(width=64, height=48))
-  let manifest = suite_manifest(plans, prefix="fixtures")
-  inspect(manifest.assets.length(), content="8")
-}
-```
+## Architecture
 
-## Repository Layout
+The root package is intentionally dependency-light and split by responsibility:
 
-- `types.mbt`: geometry, color and numeric helpers.
-- `image.mbt`: gray/RGB image buffers and pixel operations.
-- `draw.mbt`: line, rectangle and circle drawing.
-- `patterns.mbt`: calibration and procedural patterns.
-- `effects.mbt`: noise, blur and occlusion transforms.
-- `annotation.mbt`: boxes, keypoints, masks and flow vectors.
-- `manifest.mbt`: dataset manifest serialization.
-- `suite.mbt`: reusable scene recipes.
-- `cmd/main`: CLI preview.
-- `vision_wbtest.mbt`: regression tests.
+| File | Responsibility |
+| --- | --- |
+| types.mbt | geometry, colors, sizes, and numeric helpers |
+| image.mbt / export.mbt | image buffers and text exporters |
+| draw.mbt / patterns.mbt | drawing and procedural scenes |
+| effects.mbt / transform.mbt | noise, blur, morphology, and transforms |
+| annotation.mbt / geometry_extra.mbt | annotations, masks, boxes, and flow |
+| manifest.mbt / dataset_ops.mbt | manifests, splits, and dataset operations |
+| analytics.mbt | image statistics and comparison metrics |
+| suite.mbt | reusable recipes and rendering |
+| cmd/main / cmd/bench | preview and benchmark executables |
 
-## Validation
+## Benchmarks
 
-The intended CI gate is:
+Run the benchmark on the same toolchain and machine when comparing changes:
 
-```bash
+~~~text
+suite=8
+pixels=149987
+boxes=5
+checksum=22085168
+mean=127
+~~~
+
+The counters and checksum are deterministic correctness signals. Wall-clock
+time is environment-dependent; record it separately when publishing results.
+
+## Testing and CI
+
+Local validation:
+
+~~~bash
 moon fmt --check
 moon check --target wasm-gc --deny-warn
-moon test --target wasm-gc
-moon info --target wasm-gc
+moon check --target native --deny-warn
+moon test --target wasm-gc --deny-warn
+moon test --target native --deny-warn
+moon info
 git diff --exit-code
-```
+~~~
 
-The local toolchain used during development is `moon 0.1.20260713`. It is newer
-than the competition note that recommended MoonBit 0.10.3, so the repository is
-kept aligned with the latest installed formatter and warning behavior. In this
-toolchain, `moon info` does not accept `--deny-warn`; warning denial is enforced
-by `moon check --deny-warn` before interface generation.
+GitHub Actions runs formatting, warning denial, interface regeneration, tests
+and coverage on the supported WebAssembly and native targets. Generated
+pkg.generated.mbti files are checked so public API drift is visible in code
+review.
 
-## OSC2026 Notes
+## Development
 
-The project is prepared for the MoonBit Open Source Ecosystem Competition 2026:
-
-- Public repository with a standard OSI license.
-- Original MoonBit source by the account owner, without generated or virtual
-  contributors.
-- Runnable tests and CI workflow.
-- Clear source statement and maintainable package boundaries.
-- Reusable ecosystem value rather than a one-off demo.
-
-## Source Statement
-
-The MoonBit implementation in this repository is original work for OSC2026. It
-is inspired by common computer-vision testing needs such as calibration boards,
-synthetic detection scenes and optical-flow fixtures, but it does not copy code
-from OpenCV, scikit-image, image libraries, or existing mooncakes packages.
+See CONTRIBUTING.md for formatting, testing, package boundaries, and
+pull-request expectations. CHANGELOG.md records user-visible changes and
+ROADMAP.md tracks future fixture formats and integrations.
 
 ## License
 
-Apache-2.0.
+Apache-2.0. See LICENSE.

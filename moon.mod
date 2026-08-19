@@ -11,7 +11,7 @@
 
 name = "caassien/moonbit-synthetic-vision"
 
-version = "0.1.0"
+version = "0.2.0"
 
 readme = "README.mbt.md"
 
@@ -19,8 +19,15 @@ repository = "https://github.com/caassien/moonbit-synthetic-vision"
 
 license = "Apache-2.0"
 
-keywords = [ ]
+keywords = [
+  "vision",
+  "synthetic-data",
+  "testing",
+  "calibration",
+  "image",
+  "benchmark",
+]
 
 preferred_target = "wasm-gc"
 
-description = ""
+description = "Deterministic synthetic vision fixtures, annotations, and benchmarks for MoonBit."

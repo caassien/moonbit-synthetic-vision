@@ -22,6 +22,8 @@ pub fn checkerboard(Size, Int, dark? : Gray, light? : Gray) -> GrayImage
 
 pub fn clamp(Int, low~ : Int, high~ : Int) -> Int
 
+pub fn clamp_rect(Rect, Size) -> Rect
+
 pub fn clamp_u8(Int) -> Int
 
 pub fn constant_flow(Size, Int, dx~ : Int, dy~ : Int) -> Array[FlowVector]
@@ -32,7 +34,19 @@ pub fn dot_grid(Size, Int, Int) -> GrayImage
 
 pub fn escape_json(String) -> String
 
+pub fn flow_endpoint(FlowVector) -> Point
+
+pub fn flow_magnitude_l1(FlowVector) -> Int
+
+pub fn flow_mean(Array[FlowVector]) -> Point
+
 pub fn gradient(Size, horizontal? : Bool) -> GrayImage
+
+pub fn keypoints_visible(Array[Keypoint]) -> Int
+
+pub fn labels_in_scene(SceneOutput) -> Array[Label]
+
+pub fn mask_iou(Mask, Mask, Int) -> Int
 
 pub fn max_i(Int, Int) -> Int
 
@@ -44,19 +58,43 @@ pub fn occlude(GrayImage, Rect, gray? : Gray) -> GrayImage
 
 pub fn pad3(Int) -> String
 
+pub fn rect_grid(Size, Size) -> Array[Rect]
+
+pub fn render_and_summarize(Array[ScenePlan]) -> Array[AnnotationSummary]
+
 pub fn render_detection_scene(ScenePlan) -> SceneOutput
 
 pub fn render_plan(ScenePlan) -> SceneOutput
 
 pub fn render_segmentation_scene(ScenePlan) -> SceneOutput
 
+pub fn render_suite(Array[ScenePlan]) -> Array[SceneOutput]
+
+pub fn scene_to_yolo(SceneOutput) -> String
+
+pub fn scenes_manifest(Array[SceneOutput], String) -> DatasetManifest
+
+pub fn split_manifest(DatasetManifest, Int, Int) -> DatasetSplit
+
 pub fn suite_manifest(Array[ScenePlan], prefix? : String) -> DatasetManifest
 
+pub fn summarize_scene(SceneOutput) -> AnnotationSummary
+
 pub fn target_scene(Size, seed? : UInt) -> GrayImage
+
+pub fn transform_boxes(Array[Box2D], Point, Size) -> Array[Box2D]
 
 // Errors
 
 // Types and methods
+pub struct AnnotationSummary {
+  boxes : Int
+  visible_keypoints : Int
+  mask_pixels : Int
+  flow_vectors : Int
+} derive(Eq, @debug.Debug)
+pub fn AnnotationSummary::total(Self) -> Int
+
 pub struct Asset {
   name : String
   image_path : String
@@ -84,6 +122,10 @@ pub struct Box2D {
   occluded : Bool
 } derive(Eq, @debug.Debug)
 pub fn Box2D::area(Self) -> Int
+pub fn Box2D::center(Self) -> Point
+pub fn Box2D::clip(Self, Size) -> Self
+pub fn Box2D::iou(Self, Self) -> Int
+pub fn Box2D::is_valid(Self) -> Bool
 pub fn Box2D::new(label~ : Label, rect~ : Rect, occluded? : Bool) -> Self
 pub fn Box2D::to_yolo(Self, Size) -> String
 
@@ -93,8 +135,21 @@ pub struct DatasetManifest {
   assets : Array[Asset]
 } derive(Eq, @debug.Debug)
 pub fn DatasetManifest::add(Self, Asset) -> Unit
+pub fn DatasetManifest::assets_with_seed(Self, UInt) -> Array[Asset]
+pub fn DatasetManifest::filter_tag(Self, String) -> Self
+pub fn DatasetManifest::has_unique_names(Self) -> Bool
 pub fn DatasetManifest::new(name~ : String, version? : String) -> Self
+pub fn DatasetManifest::seeds(Self) -> Array[UInt]
 pub fn DatasetManifest::to_json(Self) -> String
+pub fn DatasetManifest::total_tags(Self) -> Int
+
+pub struct DatasetSplit {
+  train : Array[Asset]
+  validation : Array[Asset]
+  holdout : Array[Asset]
+} derive(Eq, @debug.Debug)
+pub fn DatasetSplit::to_manifest(Self, String, String) -> DatasetManifest
+pub fn DatasetSplit::total(Self) -> Int
 
 pub struct FlowVector {
   x : Int
@@ -117,13 +172,23 @@ pub struct GrayImage {
   height : Int
   pixels : Array[Int]
 } derive(Eq, @debug.Debug)
+pub fn GrayImage::add_brightness(Self, Int) -> Self
 pub fn GrayImage::bounds(Self) -> Rect
+pub fn GrayImage::close(Self, Int) -> Self
 pub fn GrayImage::copy(Self) -> Self
+pub fn GrayImage::count_in_range(Self, Int, Int) -> Int
+pub fn GrayImage::count_value(Self, Int) -> Int
+pub fn GrayImage::crop(Self, Rect) -> Self
+pub fn GrayImage::dilate(Self, Int) -> Self
 pub fn GrayImage::draw_circle(Self, Point, Int, Gray) -> Unit
 pub fn GrayImage::draw_line(Self, Point, Point, Gray) -> Unit
 pub fn GrayImage::draw_rect(Self, Rect, Gray) -> Unit
+pub fn GrayImage::edge_map(Self, Int) -> Self
+pub fn GrayImage::erode(Self, Int) -> Self
 pub fn GrayImage::fill_circle(Self, Point, Int, Gray) -> Unit
 pub fn GrayImage::fill_rect(Self, Rect, Gray) -> Unit
+pub fn GrayImage::flip_horizontal(Self) -> Self
+pub fn GrayImage::flip_vertical(Self) -> Self
 pub fn GrayImage::from_size(Size, fill? : Gray) -> Self
 pub fn GrayImage::get(Self, Int, Int) -> Gray
 pub fn GrayImage::histogram(Self, Int) -> Array[Int]
@@ -131,12 +196,45 @@ pub fn GrayImage::in_bounds(Self, Int, Int) -> Bool
 pub fn GrayImage::index(Self, Int, Int) -> Int
 pub fn GrayImage::invert(Self) -> Self
 pub fn GrayImage::map(Self, (Int) -> Int) -> Self
+pub fn GrayImage::mean(Self) -> Int
+pub fn GrayImage::mean_abs_error(Self, Self) -> Int
+pub fn GrayImage::mse_x1000(Self, Self) -> Int
+pub fn GrayImage::multiply_contrast(Self, Int, Int) -> Self
 pub fn GrayImage::new(width~ : Int, height~ : Int, fill? : Gray) -> Self
+pub fn GrayImage::open(Self, Int) -> Self
+pub fn GrayImage::pad(Self, Int, Gray) -> Self
+pub fn GrayImage::posterize(Self, Int) -> Self
+pub fn GrayImage::psnr_x1000(Self, Self) -> Int
+pub fn GrayImage::quantize(Self, Int) -> Self
+pub fn GrayImage::resize_nearest(Self, Size) -> Self
+pub fn GrayImage::rotate(Self, Int) -> Self
+pub fn GrayImage::rotate180(Self) -> Self
+pub fn GrayImage::rotate90_ccw(Self) -> Self
+pub fn GrayImage::rotate90_cw(Self) -> Self
 pub fn GrayImage::set(Self, Int, Int, Gray) -> Unit
 pub fn GrayImage::size(Self) -> Size
+pub fn GrayImage::sobel_x(Self) -> Self
+pub fn GrayImage::sobel_y(Self) -> Self
+pub fn GrayImage::stats(Self) -> ImageStats
+pub fn GrayImage::sum(Self) -> Int
 pub fn GrayImage::threshold(Self, Int) -> Self
+pub fn GrayImage::tile(Self, Size) -> Array[Self]
 pub fn GrayImage::to_ascii_art(Self) -> String
 pub fn GrayImage::to_pgm(Self) -> String
+pub fn GrayImage::translate(Self, Int, Int, Gray) -> Self
+pub fn GrayImage::warp_affine_integer(Self, Point, Gray) -> Self
+
+pub struct ImageStats {
+  min : Int
+  max : Int
+  mean_x1000 : Int
+  variance_x1000 : Int
+  nonzero : Int
+  count : Int
+} derive(Eq, @debug.Debug)
+pub fn ImageStats::dynamic_range(Self) -> Int
+pub fn ImageStats::from_gray(GrayImage) -> Self
+pub fn ImageStats::is_constant(Self) -> Bool
 
 pub struct InstanceAnnotation {
   id : Int
@@ -164,6 +262,8 @@ pub struct Mask {
   height : Int
   values : Array[Int]
 } derive(Eq, @debug.Debug)
+pub fn Mask::bounding_box(Self, Int) -> Rect
+pub fn Mask::count(Self, Int) -> Int
 pub fn Mask::fill_rect(Self, Rect, Int) -> Unit
 pub fn Mask::in_bounds(Self, Int, Int) -> Bool
 pub fn Mask::index(Self, Int, Int) -> Int
@@ -175,7 +275,10 @@ pub struct Point {
   x : Int
   y : Int
 } derive(Eq, @debug.Debug)
+pub fn Point::distance_l1(Self, Self) -> Int
+pub fn Point::distance_linf(Self, Self) -> Int
 pub fn Point::new(x~ : Int, y~ : Int) -> Self
+pub fn Point::translate(Self, Int, Int) -> Self
 
 pub struct Rect {
   x : Int
@@ -183,10 +286,21 @@ pub struct Rect {
   width : Int
   height : Int
 } derive(Eq, @debug.Debug)
+pub fn Rect::area(Self) -> Int
 pub fn Rect::bottom(Self) -> Int
+pub fn Rect::center(Self) -> Point
 pub fn Rect::contains(Self, Point) -> Bool
+pub fn Rect::inflate(Self, Int) -> Self
+pub fn Rect::intersection(Self, Self) -> Self
+pub fn Rect::iou(Self, Self) -> Int
+pub fn Rect::is_empty(Self) -> Bool
 pub fn Rect::new(x~ : Int, y~ : Int, width~ : Int, height~ : Int) -> Self
 pub fn Rect::right(Self) -> Int
+pub fn Rect::split_horizontal(Self, Int) -> Array[Self]
+pub fn Rect::split_vertical(Self, Int) -> Array[Self]
+pub fn Rect::to_mask(Self, Size, Int) -> Mask
+pub fn Rect::translate(Self, Int, Int) -> Self
+pub fn Rect::union(Self, Self) -> Self
 
 pub struct Rgb {
   r : Int
@@ -201,12 +315,19 @@ pub struct RgbImage {
   height : Int
   pixels : Array[Rgb]
 } derive(Eq, @debug.Debug)
+pub fn RgbImage::channel_histogram(Self, Int, Int) -> Array[Int]
+pub fn RgbImage::copy(Self) -> Self
 pub fn RgbImage::from_gray(GrayImage) -> Self
 pub fn RgbImage::get(Self, Int, Int) -> Rgb
+pub fn RgbImage::grayscale(Self) -> GrayImage
 pub fn RgbImage::in_bounds(Self, Int, Int) -> Bool
 pub fn RgbImage::index(Self, Int, Int) -> Int
+pub fn RgbImage::invert(Self) -> Self
+pub fn RgbImage::map(Self, (Rgb) -> Rgb) -> Self
 pub fn RgbImage::new(width~ : Int, height~ : Int, fill? : Rgb) -> Self
+pub fn RgbImage::replace_channel(Self, Int, Int) -> Self
 pub fn RgbImage::set(Self, Int, Int, Rgb) -> Unit
+pub fn RgbImage::size(Self) -> Size
 pub fn RgbImage::to_ppm(Self) -> String
 
 pub struct Rng {
@@ -226,6 +347,7 @@ pub struct SceneOutput {
   boxes : Array[Box2D]
   flow : Array[FlowVector]
 } derive(Eq, @debug.Debug)
+pub fn SceneOutput::annotation_summary(Self) -> AnnotationSummary
 pub fn SceneOutput::new(plan~ : ScenePlan, image~ : GrayImage, mask? : Mask, boxes? : Array[Box2D], flow? : Array[FlowVector]) -> Self
 
 pub struct ScenePlan {
@@ -247,4 +369,3 @@ pub fn Size::new(width~ : Int, height~ : Int) -> Self
 // Type aliases
 
 // Traits
-

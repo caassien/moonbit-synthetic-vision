@@ -109,3 +109,42 @@ test "constant flow samples a regular grid" {
   inspect(flow.length(), content="9")
   debug_inspect(flow[0], content="{ x: 0, y: 0, dx: 1, dy: -1 }")
 }
+
+///|
+test "geometry and dataset operations are deterministic" {
+  let left = Rect::new(x=0, y=0, width=10, height=10)
+  let right = Rect::new(x=5, y=5, width=10, height=10)
+  inspect(left.iou(right), content="142")
+  let manifest = suite_manifest(
+    default_suite(size=Size::new(width=32, height=24)),
+  )
+  let split = split_manifest(manifest, 700, 150)
+  inspect(split.total(), content="8")
+  assert_true(manifest.has_unique_names())
+}
+
+///|
+test "statistics and RGB channels preserve useful signals" {
+  let image = GrayImage::new(width=2, height=2, fill=Gray::new(10))
+  image.set(1, 1, Gray::new(250))
+  inspect(image.stats().min, content="10")
+  inspect(image.stats().max, content="250")
+  inspect(image.mean_abs_error(image), content="0")
+  let rgb = RgbImage::from_gray(image).replace_channel(0, 200)
+  inspect(rgb.grayscale().get(0, 0).value, content="66")
+  inspect(rgb.channel_histogram(0, 2)[1], content="4")
+}
+
+///|
+test "masks and transformed annotations stay bounded" {
+  let size = Size::new(width=8, height=6)
+  let mask = Rect::new(x=2, y=1, width=4, height=3).to_mask(size, 3)
+  inspect(mask.bounding_box(3).x, content="2")
+  inspect(mask.bounding_box(3).height, content="3")
+  let label = Label::new(id=1, name="target")
+  let box = Box2D::new(label~, rect=Rect::new(x=1, y=1, width=3, height=3))
+  let shifted = transform_boxes([box], Point::new(x=2, y=0), size)
+  inspect(shifted[0].center().x, content="4")
+  inspect(shifted[0].center().y, content="2")
+  assert_true(mask_iou(mask, mask, 3) == 1000)
+}
